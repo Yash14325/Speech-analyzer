@@ -36,8 +36,7 @@ pyannote.audio
 langchain>=0.1.0
 langchain-core>=0.1.0
 langchain-community
-langchain-ollama>=0.1.0
-ollama>=0.1.0
+langchain-nvidia-ai-endpoints>=0.1.2
 
 # ===============================
 # Evaluations - LangChain Quality Assessment

@@ -5,34 +5,28 @@ from llm1.llm_config import LLM_MODEL_NAME, TEMPERATURE, MAX_TOKENS
 
 def get_llm():
     """
-    Returns a free local LLM instance using Ollama.
-    Falls back to stub if Ollama is not available.
+    Returns an LLM instance using NVIDIA API.
+    Falls back to stub if API is not available.
     """
     try:
-        # Try new langchain-ollama package first
-        try:
-            from langchain_ollama import OllamaLLM
-            llm = OllamaLLM(
-                model=LLM_MODEL_NAME,
-                temperature=TEMPERATURE,
-                num_predict=MAX_TOKENS
-            )
-        except ImportError:
-            from langchain_community.llms import Ollama
-            llm = Ollama(
-                model=LLM_MODEL_NAME,
-                temperature=TEMPERATURE,
-                num_predict=MAX_TOKENS
-            )
+        from langchain_nvidia_ai_endpoints import ChatNVIDIA
+        from langchain_core.output_parsers import StrOutputParser
         
-        # Quick test to see if Ollama is running
-        llm.invoke("hi")
+        chat_model = ChatNVIDIA(
+            model=LLM_MODEL_NAME,
+            temperature=TEMPERATURE,
+            max_tokens=MAX_TOKENS
+        )
+        llm = chat_model | StrOutputParser()
         return llm
-        
-    except Exception as e:
-        print(f"⚠️ Ollama not available: {e}")
+
+    except (ImportError, ModuleNotFoundError) as e:
+        print(f"⚠️ NVIDIA API not available: {e}")
         print("   Using stub LLM for testing...")
-        
+
         # Import stub from main llm module
-        from llm1.local_llm import _StubLLM
+        from llm.local_llm import _StubLLM
         return _StubLLM()
+    except Exception:
+        # Re-raise any other exception (API failures, auth, network, config)
+        raise
