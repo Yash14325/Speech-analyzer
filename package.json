@@ -1,8 +1,20 @@
 {
   "devDependencies": {
-    "husky": "^9.1.7"
+    "husky": "^9.1.7",
+    "lint-staged": "^17.0.4",
+    "prettier": "^3.8.3"
   },
   "scripts": {
     "prepare": "husky"
+  },
+  "lint-staged": {
+    "frontend/**/*.{js,jsx,ts,tsx,css,md,json}": [
+      "prettier --write",
+      "npm run lint --prefix frontend"
+    ],
+    "backend/**/*.py": [
+      "bash -c 'cd backend && ./.venv/bin/black \"$@\"' --",
+      "bash -c 'cd backend && ruff check \"$@\"' --"
+    ]
   }
 }
