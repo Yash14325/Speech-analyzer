@@ -1,7 +1,7 @@
 """Confidence Agent: Analyzes vocal confidence and emotional tone."""
 
 import logging
-from typing import Dict, Any, Optional
+from typing import Dict, Any
 
 from llm_helper import llm
 from llm1.prompt_templates import CONFIDENCE_PROMPT

@@ -4,7 +4,6 @@ RAG Retriever - Uses ChromaDB for retrieval
 ChromaDB uses its own built-in embeddings (all-MiniLM-L6-v2) for fast local retrieval
 """
 
-import os
 from typing import List, Dict, Optional
 
 try:
@@ -15,7 +14,6 @@ except ImportError:
     print("⚠️ ChromaDB not installed. Install with: pip install chromadb")
 
 from rag.config import (
-    CHROMA_PERSIST_DIR, 
     COLLECTION_NAME, 
     TOP_K_RESULTS
 )

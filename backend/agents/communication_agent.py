@@ -1,7 +1,7 @@
 """Communication Agent: Analyzes speech communication patterns and clarity."""
 
 import logging
-from typing import Dict, Any, Optional
+from typing import Dict, Any
 
 from llm_helper import llm
 from llm1.prompt_templates import COMMUNICATION_PROMPT

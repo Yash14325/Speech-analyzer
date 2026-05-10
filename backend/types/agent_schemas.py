@@ -1,7 +1,7 @@
 """Pydantic schemas for agent outputs ensuring type safety and validation."""
 
 from pydantic import BaseModel, Field
-from typing import List, Literal
+from typing import List
 from enum import Enum
 
 

@@ -1,6 +1,6 @@
 """Type definitions for pipeline state and data structures."""
 
-from typing import Dict, Any, Optional, TypedDict
+from typing import Dict, Any, TypedDict
 from pydantic import BaseModel, Field
 
 

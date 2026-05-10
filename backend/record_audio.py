@@ -3,7 +3,6 @@
 import os
 import shutil
 import subprocess
-import tempfile
 import uuid
 from fastapi import UploadFile
 from typing import Tuple

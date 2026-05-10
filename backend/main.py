@@ -3,15 +3,16 @@ Speech Analysis Pipeline - Main Entry Point
 Runs the complete workflow: Record → Preprocess → Transcribe → Analyze → AI Report
 """
 
-# Suppress TorchAudio deprecation warnings
+# Suppress TorchAudio deprecation warnings - must be before imports that load torchaudio
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning, module="torchaudio")
 warnings.filterwarnings("ignore", message=".*torchaudio.*deprecated.*")
 warnings.filterwarnings("ignore", message=".*sox_effects.*")
 
-import soundfile as sf
 import json
+import soundfile as sf
 import librosa
+import sounddevice as sd
 from rag.rag_pipeline import rag_enhanced_report
 from speech_to_text import transcribe_audio
 from speech_features import analyze_speech

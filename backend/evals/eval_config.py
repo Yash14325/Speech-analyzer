@@ -18,7 +18,7 @@ Criteria Available:
 
 import json
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict
 from enum import Enum
 
 # Configure logging
@@ -30,9 +30,6 @@ logger = logging.getLogger(__name__)
 try:
     # Try langchain_classic first (has the full evaluation module)
     from langchain_classic.evaluation import (
-        load_evaluator,
-        EvaluatorType,
-        Criteria,
         CriteriaEvalChain,
         ScoreStringEvalChain,
         JsonValidityEvaluator,
@@ -43,9 +40,6 @@ except ImportError:
     try:
         # Try the old langchain path
         from langchain.evaluation import (
-            load_evaluator,
-            EvaluatorType,
-            Criteria,
             CriteriaEvalChain,
             ScoreStringEvalChain,
             JsonValidityEvaluator,

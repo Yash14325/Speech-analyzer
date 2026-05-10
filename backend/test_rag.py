@@ -114,13 +114,13 @@ def test_agent_integration():
         result = run_agents(sample_state)
         
         print("✅ Agents executed successfully with RAG")
-        print(f"\n📌 Communication Analysis:")
+        print("\n📌 Communication Analysis:")
         print(json.dumps(result.get("communication_analysis"), indent=2))
         
-        print(f"\n📌 Confidence Analysis:")
+        print("\n📌 Confidence Analysis:")
         print(json.dumps(result.get("confidence_emotion_analysis"), indent=2))
         
-        print(f"\n📌 Personality Analysis:")
+        print("\n📌 Personality Analysis:")
         print(json.dumps(result.get("personality_analysis"), indent=2))
         
         return "error" not in str(result).lower()
@@ -161,7 +161,7 @@ def test_report_generation():
         print("Generating report with RAG context...")
         report = generate_final_report(sample_agent_outputs)
         
-        print(f"\n✅ Report generated successfully!")
+        print("\n✅ Report generated successfully!")
         print(f"   Report length: {len(report)} characters")
         print("\n📝 Report Preview (first 500 chars):")
         print("-" * 40)

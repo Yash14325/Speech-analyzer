@@ -5,7 +5,6 @@ Test script for LangChain-based evaluations.
 Run: python -m evals.test_evals
 """
 
-import json
 from datetime import datetime
 
 
@@ -17,8 +16,6 @@ def test_evaluation_imports():
     
     try:
         from evals.eval_config import (
-            SpeechAnalysisEvaluator,
-            get_evaluator,
             is_eval_available,
             EvalCriteria,
         )
@@ -41,7 +38,7 @@ def test_evaluator_initialization():
         from evals.eval_config import get_evaluator, is_eval_available
         
         evaluator = get_evaluator()
-        print(f"✅ Evaluator initialized")
+        print("✅ Evaluator initialized")
         print(f"   Eval available: {is_eval_available()}")
         print(f"   Criteria evaluators: {list(evaluator._criteria_evaluators.keys())}")
         print(f"   Score evaluator: {'Yes' if evaluator._score_evaluator else 'No'}")
@@ -66,14 +63,14 @@ def test_json_evaluation():
         # Test valid JSON
         valid_json = '{"fluency_level": "good", "clarity_score": 85}'
         result = evaluator.evaluate_json_validity(valid_json)
-        print(f"✅ Valid JSON test:")
+        print("✅ Valid JSON test:")
         print(f"   Input: {valid_json}")
         print(f"   Result: {result}")
         
         # Test invalid JSON
         invalid_json = '{fluency_level: good, clarity_score: 85'
         result = evaluator.evaluate_json_validity(invalid_json)
-        print(f"\n✅ Invalid JSON test:")
+        print("\n✅ Invalid JSON test:")
         print(f"   Input: {invalid_json}")
         print(f"   Result: {result}")
         
@@ -119,7 +116,7 @@ def test_agent_evaluation():
             input_metrics
         )
         
-        print(f"✅ Agent evaluation completed:")
+        print("✅ Agent evaluation completed:")
         print(f"   Agent: {result.get('agent')}")
         print(f"   Overall Score: {result.get('overall_score')}")
         print(f"   Evaluations: {list(result.get('evaluations', {}).keys())}")
@@ -177,7 +174,7 @@ def test_runner():
     print("="*60)
     
     try:
-        from evals.eval_runner import EvaluationRunner, run_full_evaluation
+        from evals.eval_runner import EvaluationRunner
         
         # Sample pipeline output
         pipeline_output = {
@@ -220,7 +217,7 @@ def test_runner():
         runner = EvaluationRunner()
         result = runner.evaluate_pipeline_output(pipeline_output)
         
-        print(f"✅ Runner evaluation completed:")
+        print("✅ Runner evaluation completed:")
         print(f"   Timestamp: {result.get('timestamp')}")
         print(f"   Eval Available: {result.get('evaluation_available')}")
         print(f"   Agents Evaluated: {result.get('summary', {}).get('agents_evaluated')}")

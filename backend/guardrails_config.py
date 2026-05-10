@@ -26,7 +26,7 @@ Installation:
 
 import json
 import logging
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Dict, Tuple
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -38,7 +38,6 @@ try:
     from guardrails.hub import (
         ToxicLanguage,
         ProfanityFree,
-        ValidJson,
         DetectPII,
         GibberishText,
         SensitiveTopics,

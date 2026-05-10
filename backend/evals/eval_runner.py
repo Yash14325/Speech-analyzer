@@ -17,13 +17,11 @@ logger = logging.getLogger(__name__)
 try:
     from evals.eval_config import (
         get_evaluator,
-        SpeechAnalysisEvaluator,
         is_eval_available,
     )
 except ImportError:
     from eval_config import (
         get_evaluator,
-        SpeechAnalysisEvaluator,
         is_eval_available,
     )
 

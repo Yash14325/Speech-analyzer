@@ -1,14 +1,14 @@
 # backend/api.py
 """FastAPI application for speech analysis with comprehensive input validation."""
 
-from fastapi import FastAPI, UploadFile, File, HTTPException, Depends
+from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.concurrency import run_in_threadpool
 import os
 import logging
 from typing import Dict, Any
 
-from validators.file_validator import validate_audio_file, sanitize_filename
+from validators.file_validator import validate_audio_file
 from record_audio import record_audio
 from link import run_pipeline
 

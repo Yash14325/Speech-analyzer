@@ -1,7 +1,7 @@
 """Personality Agent: Analyzes personality traits from communication patterns."""
 
 import logging
-from typing import Dict, Any, Optional
+from typing import Dict, Any
 
 from llm_helper import llm
 from llm1.prompt_templates import PERSONALITY_PROMPT
