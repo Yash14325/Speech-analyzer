@@ -11,6 +11,11 @@ def get_llm():
     try:
         from langchain_nvidia_ai_endpoints import ChatNVIDIA
         from langchain_core.output_parsers import StrOutputParser
+        import os
+
+        # Add basic check to fallback to stub if no key provided
+        if not os.environ.get("NVIDIA_API_KEY"):
+            raise ValueError("No NVIDIA API key found")
         
         chat_model = ChatNVIDIA(
             model=LLM_MODEL_NAME,
@@ -20,13 +25,13 @@ def get_llm():
         llm = chat_model | StrOutputParser()
         return llm
 
-    except (ImportError, ModuleNotFoundError) as e:
+    except (ImportError, ModuleNotFoundError, ValueError) as e:
         print(f"⚠️ NVIDIA API not available: {e}")
         print("   Using stub LLM for testing...")
 
         # Import stub from main llm module
         from llm.local_llm import _StubLLM
         return _StubLLM()
-    except Exception:
-        # Re-raise any other exception (API failures, auth, network, config)
+    except Exception as e:
+        print(f"⚠️ Exception initializing NVIDIA LLM: {e}")
         raise

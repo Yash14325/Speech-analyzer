@@ -6,6 +6,7 @@ testing purposes.
 """
 import json
 import threading
+import os
 
 from llm1.llm_config import LLM_MODEL_NAME, TEMPERATURE, MAX_TOKENS
 
@@ -15,18 +16,38 @@ class _StubLLM:
     
     def invoke(self, prompt: str) -> str:
         p = prompt.lower() if prompt else ""
-        if "communication analysis ai agent" in p:
+        if "communication skills analyst" in p:
             resp = {
-                "clarity_score": 85,
-                "fluency_level": "Good",
-                "speech_structure": "Structured",
-                "vocabulary_level": "Advanced"
+                "communication_score": 85,
+                "clarity_level": "High",
+                "fluency_level": "High",
+                "speech_pacing": "Balanced",
+                "key_observations": ["Clear delivery"],
+                "communication_strengths": ["Strong enunciation"],
+                "communication_gaps": ["None"],
+                "improvement_suggestions": ["Keep it up"]
             }
-        elif "confidence & emotion analysis ai agent" in p or "confidence & emotion" in p:
-            resp = {"confidence_level": "High", "nervousness": "Low", "emotion": "Calm"}
-        elif "personality mapping ai agent" in p or "personality" in p:
-            resp = {"personality_type": "Balanced", "assertiveness": "Moderate", "expressiveness": "Moderate"}
-        elif "communication coach" in p or "personality report" in p:
+        elif "voice confidence analyst" in p:
+            resp = {
+                "confidence_score": 90,
+                "confidence_level": "High",
+                "emotional_tone": "Assertive",
+                "vocal_energy_assessment": "High",
+                "confidence_indicators": ["Steady pitch"],
+                "possible_challenges": ["None"],
+                "confidence_enhancement_tips": ["Continue current pace"]
+            }
+        elif "personality insight engine" in p:
+            resp = {
+                "personality_type": "Ambivert",
+                "interaction_style": "Balanced",
+                "professional_presence": "Strong",
+                "key_personality_traits": ["Adaptable"],
+                "strengths_in_interaction": ["Good listener"],
+                "growth_opportunities": ["None"],
+                "overall_summary": "Professional and balanced."
+            }
+        elif "communication coach" in p or "final report" in p or "improvement recommendations" in p or "communication overview" in p:
             # Final report stub
             return """
 📊 **Communication Overview**
@@ -78,6 +99,9 @@ class _LazyNvidiaLLM:
                         from langchain_nvidia_ai_endpoints import ChatNVIDIA
                         from langchain_core.output_parsers import StrOutputParser
 
+                        if not os.environ.get("NVIDIA_API_KEY"):
+                            raise ValueError("No NVIDIA API key found")
+
                         chat_model = ChatNVIDIA(
                             model=LLM_MODEL_NAME,
                             temperature=TEMPERATURE,
@@ -85,13 +109,12 @@ class _LazyNvidiaLLM:
                         )
                         self._llm = chat_model | StrOutputParser()
                         self._initialized = True
-                    except (ImportError, ModuleNotFoundError) as e:
+                    except (ImportError, ModuleNotFoundError, ValueError) as e:
                         print(f"⚠️ NVIDIA API not available ({e}), using stub LLM")
                         self._llm = _StubLLM()
                         self._initialized = True
-                    except Exception:
-                        # Re-raise any other exception (API failures, auth, network, config)
-                        # Leave _initialized as False so retry is possible
+                    except Exception as e:
+                        print(f"⚠️ Exception initializing NVIDIA LLM: {e}")
                         raise
         return self._llm
     

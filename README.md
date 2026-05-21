@@ -564,6 +564,10 @@ For issues and questions:
 - Open an issue on [GitHub](https://github.com/GSMPRANEETH/TEAM-5/issues)
 - Contact: [Project Team]
 
+## 🌟 Fixes & Updates
+- Resolved issue where the front end report was not being generated correctly by ensuring backend mock LLM schema strictly follows the expected prompt schema output patterns.
+- Added safeguards in local_llm wrappers when API keys are not supplied.
+
 ## 🗺️ Roadmap
 
 - [ ] Support for additional LLM providers
