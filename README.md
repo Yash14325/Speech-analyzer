@@ -1,4 +1,4 @@
-# 🎙️ TEAM-5 Speech Analysis Pipeline
+# 🎙️ Speech Analysis Pipeline
 
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.95+-green.svg)](https://fastapi.tiangolo.com/)
@@ -27,7 +27,7 @@ An advanced AI-powered speech analysis system that provides real-time personalit
 
 ## 🌟 Overview
 
-TEAM-5 is a comprehensive speech analysis pipeline that combines state-of-the-art speech processing, natural language understanding, and multi-agent AI systems to provide detailed personality insights and communication analysis. The system uses NVIDIA NIM for hosted LLM inference, falls back to local Ollama when needed, and uses Retrieval-Augmented Generation (RAG) to deliver personalized, actionable feedback.
+Vocal Persona is a comprehensive speech analysis pipeline that combines state-of-the-art speech processing, natural language understanding, and multi-agent AI systems to provide detailed personality insights and communication analysis. The system uses NVIDIA NIM for hosted LLM inference, falls back to local Ollama when needed, and uses Retrieval-Augmented Generation (RAG) to deliver personalized, actionable feedback.
 
 ### Key Capabilities
 
