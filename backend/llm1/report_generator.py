@@ -2,110 +2,85 @@
 """
 Report generation using RAG-enhanced LLM.
 
-NOTE: This module provides `generate_final_report()` which is functionally 
-identical to `rag_enhanced_report()` in rag/rag_pipeline.py.
-- Main application uses: rag.rag_pipeline.rag_enhanced_report()
-- Tests use: llm1.report_generator.generate_final_report()
-Both produce the same output and can be used interchangeably.
+This module provides generate_final_report(), which mirrors
+rag.rag_pipeline.rag_enhanced_report() for tests and direct use.
 """
 
 from llm1.local_llm import get_llm
 from llm1.prompt_templates import REPORT_PROMPT
 
-# Import RAG system for context augmentation
 try:
     from rag.retriever import get_retriever
+
     RAG_AVAILABLE = True
 except ImportError:
     RAG_AVAILABLE = False
-    print("⚠️ RAG module not available, proceeding without retrieval augmentation")
+    print("RAG module not available, proceeding without retrieval augmentation")
 
-# Import GuardrailsAI for report validation
 try:
     from guardrails_config import validate_final_report
-    GUARDRAILS_AVAILABLE = True
 except ImportError:
-    GUARDRAILS_AVAILABLE = False
-    def validate_final_report(x): return x
+
+    def validate_final_report(x):
+        return x
 
 
 def _get_rag_context(agent_outputs: dict) -> str:
-    """
-    Retrieve relevant improvement recommendations from knowledge base.
-    
-    NOTE: We only fetch IMPROVEMENT context here because:
-    - Communication context was already used by communication_agent
-    - Confidence context was already used by confidence_agent
-    - Personality context was already used by personality_agent
-    - This avoids redundant RAG calls and focuses on actionable advice
-    """
+    """Retrieve relevant improvement recommendations from the knowledge base."""
     if not RAG_AVAILABLE:
         return ""
-    
+
     try:
         retriever = get_retriever()
-        
-        # Extract analysis results to identify weak areas for targeted improvements
+
         comm = agent_outputs.get("communication_analysis", {})
         conf = agent_outputs.get("confidence_emotion_analysis", {})
         pers = agent_outputs.get("personality_analysis", {})
-        
-        # Identify areas needing improvement based on agent outputs
+
         weak_areas = []
-        
+
         if isinstance(comm, dict):
-            if comm.get("clarity_score", 100) < 70:
+            if comm.get("communication_score", comm.get("clarity_score", 100)) < 70:
                 weak_areas.append("clarity")
             fluency = str(comm.get("fluency_level", "")).lower()
-            if fluency in ["poor", "average"]:
+            if fluency in ["poor", "average", "low", "medium"]:
                 weak_areas.append("fluency")
-            structure = str(comm.get("speech_structure", "")).lower()
-            if structure in ["disorganized", "basic"]:
-                weak_areas.append("speech structure")
-                
+            pacing = str(comm.get("speech_pacing", "")).lower()
+            if pacing in ["too slow", "too fast"]:
+                weak_areas.append("speech pacing")
+
         if isinstance(conf, dict):
             confidence = str(conf.get("confidence_level", "")).lower()
-            if confidence == "low":
+            if confidence in ["low", "medium"]:
                 weak_areas.append("confidence")
-            nervousness = str(conf.get("nervousness", "")).lower()
-            if nervousness in ["high", "medium"]:
-                weak_areas.append("nervousness reduction")
-                
+            energy = str(conf.get("vocal_energy_assessment", "")).lower()
+            if energy in ["low", "moderate"]:
+                weak_areas.append("vocal energy")
+
         if isinstance(pers, dict):
-            assertiveness = str(pers.get("assertiveness", "")).lower()
-            if assertiveness == "low":
-                weak_areas.append("assertiveness")
-        
-        # Get targeted improvement recommendations
-        improve_metrics = {"weak_areas": weak_areas if weak_areas else ["general speaking skills"]}
-        improve_context = retriever.get_context_for_analysis("improvement", improve_metrics)
-        
-        return improve_context
-    
+            presence = str(pers.get("professional_presence", "")).lower()
+            if presence in ["developing", "competent"]:
+                weak_areas.append("professional presence")
+
+        improve_metrics = {"weak_areas": weak_areas or ["general speaking skills"]}
+        return retriever.get_context_for_analysis("improvement", improve_metrics)
+
     except Exception as e:
-        print(f"⚠️ RAG context retrieval failed: {e}")
+        print(f"RAG context retrieval failed: {e}")
         return ""
 
 
 def generate_final_report(agent_outputs: dict):
     """
-    Converts agent outputs into a user-friendly AI report.
-    Uses RAG to augment the prompt with relevant expert knowledge.
+    Convert agent outputs into a user-friendly AI report.
+    Uses RAG context when available and falls back gracefully when it is not.
     """
     llm = get_llm()
-    
-    # Get RAG context for augmented generation
     rag_context = _get_rag_context(agent_outputs)
-    
-    # Build prompt using template
     prompt = REPORT_PROMPT.format(
-        rag_context=rag_context if rag_context else "No specific recommendations available.",
-        agent_outputs=agent_outputs
+        rag_context=rag_context or "No specific recommendations available.",
+        agent_outputs=agent_outputs,
     )
 
     report = llm.invoke(prompt)
-    
-    # Validate final report with guardrails
-    validated_report = validate_final_report(report)
-    
-    return validated_report
+    return validate_final_report(report)

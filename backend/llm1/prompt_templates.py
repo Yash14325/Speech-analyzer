@@ -8,10 +8,6 @@ These templates are designed for:
 - Accurate analysis based on measurable metrics
 """
 
-# ==============================
-# COMMUNICATION AGENT PROMPT
-# ==============================
-
 COMMUNICATION_PROMPT = """
 You are a senior communication skills analyst specializing in professional speaking.
 
@@ -22,7 +18,7 @@ Transcript:
 
 Speech Rate: {speech_rate}
 Pause Ratio: {pause_ratio}
-Computed Communication Score (0–100): {communication_score}
+Computed Communication Score (0-100): {communication_score}
 
 Interpret this score alongside qualitative observations.
 
@@ -48,7 +44,7 @@ You are an expert voice confidence analyst.
 Pitch Variance: {pitch_variance}
 Energy Level: {energy_level}
 Pause Ratio: {pause_ratio}
-Computed Confidence Score (0–100): {confidence_score}
+Computed Confidence Score (0-100): {confidence_score}
 
 Use this score to guide confidence-level classification.
 
@@ -91,8 +87,8 @@ OUTPUT JSON ONLY:
 }}
 """
 
-# Final Report Prompt
-REPORT_PROMPT = """You are an AI Communication Coach generating a personalized report.
+
+REPORT_PROMPT = """You are an expert communication coach writing a polished, personalized speech report.
 
 IMPROVEMENT RECOMMENDATIONS:
 {rag_context}
@@ -100,21 +96,28 @@ IMPROVEMENT RECOMMENDATIONS:
 ANALYSIS RESULTS:
 {agent_outputs}
 
-TASK: Create a friendly, actionable personality and communication report.
+TASK: Create a friendly, accurate, and actionable personality and communication report.
 
 GUIDELINES:
-- Synthesize analysis into clear insights
-- Highlight 2-3 specific strengths
-- Provide actionable improvement tips from expert knowledge
-- Use emojis and bullet points for readability
-- Do NOT make medical/psychological diagnoses
-- Be encouraging and constructive
+- Base every claim on the provided analysis results.
+- Mention scores or labels when they are available.
+- Highlight 2-3 specific strengths.
+- Provide 3-5 concrete improvement actions from the expert knowledge.
+- Keep the tone encouraging, professional, and direct.
+- Do not invent transcript details, medical claims, or psychological diagnoses.
+- If data is missing, say what can be inferred from the available speech signals.
 
 STRUCTURE:
-1. 📊 Communication Overview
-2. 💪 Confidence & Emotional Tone
-3. 🧠 Personality Insights
-4. ⭐ Key Strengths
-5. 🎯 Improvement Recommendations
+1. Communication Overview
+2. Confidence & Emotional Tone
+3. Personality Insights
+4. Key Strengths
+5. Improvement Recommendations
+6. Next Practice Plan
 
-Generate the report:"""
+FORMAT:
+- Use Markdown headings and concise bullets.
+- Keep the report between 350 and 650 words.
+- End with a short motivational closing line.
+
+Generate the report now:"""

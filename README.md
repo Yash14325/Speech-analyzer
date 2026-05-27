@@ -566,7 +566,7 @@ For issues and questions:
 
 ## 🌟 Fixes & Updates
 - Resolved issue where the front end report was not being generated correctly by ensuring backend mock LLM schema strictly follows the expected prompt schema output patterns.
-- Added safeguards in local_llm wrappers when API keys are not supplied.
+- Added safeguards in local_llm wrappers when Ollama is unavailable.
 
 ## 🗺️ Roadmap
 

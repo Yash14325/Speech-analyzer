@@ -1,37 +1,37 @@
 # llm1/local_llm.py
 
-from llm1.llm_config import LLM_MODEL_NAME, TEMPERATURE, MAX_TOKENS
+from llm1.llm_config import LLM_MODEL_NAME, OLLAMA_BASE_URL, TEMPERATURE, MAX_TOKENS
 
 
 class _ReportStubLLM:
-    """Fallback report generator used when NVIDIA API credentials are unavailable."""
+    """Fallback report generator used when Ollama is unavailable."""
 
     def invoke(self, prompt: str) -> str:
         return """
 **Communication Overview**
-- Your speech was processed successfully with the local fallback report generator.
-- The analysis agents completed communication, confidence, and personality scoring.
+- Your speech was processed successfully, and the system generated a local fallback report.
+- The analysis covered communication quality, vocal confidence, and personality signals.
 
 **Confidence & Emotional Tone**
-- Confidence signals were reviewed from the extracted audio and transcript features.
-- Use steady pacing, clear pauses, and consistent volume to improve delivery.
+- Maintain a steady speaking pace and use intentional pauses to sound composed.
+- Keep your volume consistent so key points land with more authority.
 
 **Personality Insights**
-- Your speaking style was reviewed for professional presence and interaction patterns.
-- Keep answers structured with a short opening, supporting points, and a clear close.
+- Your speaking style suggests a professional, structured communication approach.
+- Use a short opening, two or three supporting points, and a clear close.
 
 **Key Strengths**
-- Completed end-to-end audio transcription and agent analysis.
-- Generated feedback even without a configured NVIDIA API key.
+- Clear end-to-end speech analysis flow.
+- Practical feedback generated from the available transcript and acoustic signals.
 
 **Improvement Recommendations**
-- Add `NVIDIA_API_KEY` if you want live LLM-generated reports.
-- For local testing, this fallback keeps the app running without a 500 error.
+- Start Ollama and pull the configured model for live AI-generated reports.
+- Recommended command: `ollama pull llama3:8b`
 """.strip()
 
 
 class _SafeLLM:
-    """Invoke a real LLM, falling back if the hosted request fails."""
+    """Invoke a real LLM, falling back if the local request fails."""
 
     def __init__(self, llm):
         self._llm = llm
@@ -39,39 +39,44 @@ class _SafeLLM:
 
     def invoke(self, prompt: str) -> str:
         try:
-            return self._llm.invoke(prompt)
+            response = self._llm.invoke(prompt)
+            return getattr(response, "content", response)
         except Exception as e:
-            print(f"⚠️ NVIDIA report request failed ({e}), using stub LLM")
+            print(f"Ollama report request failed ({e}), using stub LLM")
             return self._fallback.invoke(prompt)
 
 
 def get_llm():
     """
-    Returns an LLM instance using NVIDIA API.
-    Falls back to stub if API is not available.
+    Returns an Ollama-backed LLM instance.
+    Falls back to stub if Ollama or the configured model is not available.
     """
     try:
-        from langchain_nvidia_ai_endpoints import ChatNVIDIA
-        from langchain_core.output_parsers import StrOutputParser
-        import os
+        try:
+            from langchain_ollama import OllamaLLM
 
-        # Add basic check to fallback to stub if no key provided
-        if not os.environ.get("NVIDIA_API_KEY"):
-            raise ValueError("No NVIDIA API key found")
-        
-        chat_model = ChatNVIDIA(
-            model=LLM_MODEL_NAME,
-            temperature=TEMPERATURE,
-            max_completion_tokens=MAX_TOKENS
-        )
-        llm = chat_model | StrOutputParser()
+            llm = OllamaLLM(
+                model=LLM_MODEL_NAME,
+                base_url=OLLAMA_BASE_URL,
+                temperature=TEMPERATURE,
+                num_predict=MAX_TOKENS,
+            )
+        except (ImportError, ModuleNotFoundError):
+            from langchain_community.llms import Ollama
+
+            llm = Ollama(
+                model=LLM_MODEL_NAME,
+                base_url=OLLAMA_BASE_URL,
+                temperature=TEMPERATURE,
+                num_predict=MAX_TOKENS,
+            )
+
         return _SafeLLM(llm)
 
     except (ImportError, ModuleNotFoundError, ValueError) as e:
-        print(f"⚠️ NVIDIA API not available: {e}")
-        print("   Using stub LLM for testing...")
-
+        print(f"Ollama integration not available: {e}")
+        print("Using stub LLM for testing...")
         return _ReportStubLLM()
     except Exception as e:
-        print(f"⚠️ Exception initializing NVIDIA LLM: {e}")
+        print(f"Exception initializing Ollama LLM: {e}")
         raise
