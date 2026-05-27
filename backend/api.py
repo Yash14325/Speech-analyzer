@@ -22,9 +22,9 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Configure CORS - fail closed by default, only allow wildcard in development
+# Configure CORS.
 # Example: ALLOWED_ORIGINS="https://yourdomain.com,https://app.yourdomain.com"
-# Or: ENV="development" for wildcard access
+# In local development, allow the Vite dev server origins by default.
 raw_origins = os.getenv("ALLOWED_ORIGINS", "")
 if raw_origins:
     # Split, trim, and filter blank entries
@@ -33,10 +33,18 @@ elif os.getenv("ENV") == "development" or os.getenv("DEBUG") == "true":
     # Only allow wildcard in explicit development mode
     ALLOWED_ORIGINS = ["*"]
     logger.warning("CORS configured with wildcard '*' in development mode")
-else:
-    # Fail closed in production
+elif os.getenv("ENV") == "production":
+    # Fail closed in production unless ALLOWED_ORIGINS is explicitly set
     ALLOWED_ORIGINS = []
     logger.info("CORS configured with no allowed origins (production default)")
+else:
+    ALLOWED_ORIGINS = [
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "http://localhost:5174",
+        "http://127.0.0.1:5174",
+    ]
+    logger.info("CORS configured for local frontend development")
 
 app.add_middleware(
     CORSMiddleware,

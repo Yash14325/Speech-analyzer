@@ -119,7 +119,15 @@ class _LazyNvidiaLLM:
         return self._llm
     
     def invoke(self, prompt: str) -> str:
-        return self._get_llm().invoke(prompt)
+        llm = self._get_llm()
+        try:
+            return llm.invoke(prompt)
+        except Exception as e:
+            print(f"⚠️ NVIDIA LLM request failed ({e}), using stub LLM")
+            with self._init_lock:
+                self._llm = _StubLLM()
+                self._initialized = True
+            return self._llm.invoke(prompt)
 
 
 # Export lazy-loading LLM instance

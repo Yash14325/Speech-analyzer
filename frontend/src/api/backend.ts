@@ -2,7 +2,9 @@ export async function analyzeAudio(file: File) {
   const formData = new FormData();
   formData.append("file", file);
 
-  const res = await fetch("http://127.0.0.1:8000/analyze", {
+  const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000";
+
+  const res = await fetch(`${apiBaseUrl}/analyze`, {
     method: "POST",
     body: formData,
   });
