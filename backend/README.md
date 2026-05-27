@@ -1,6 +1,6 @@
 # TEAM-5 Speech Analysis Pipeline
 
-An advanced AI-powered speech analysis system that records audio, transcribes speech, analyzes communication patterns, and generates personalized feedback reports using local LLMs and RAG (Retrieval Augmented Generation).
+An advanced AI-powered speech analysis system that records audio, transcribes speech, analyzes communication patterns, and generates personalized feedback reports using NVIDIA NIM as the primary LLM, Ollama as a local fallback, and RAG (Retrieval Augmented Generation).
 
 ## Features
 
@@ -43,9 +43,23 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### 4. Install Ollama (Required for LLM)
+### 4. Configure NVIDIA NIM Primary LLM
 
-Ollama is used for local LLM inference. Install it from [ollama.ai](https://ollama.ai/):
+The backend uses NVIDIA NIM first when `NVIDIA_API_KEY` is available, then
+falls back to Ollama if the hosted request fails.
+
+Create `backend/.env` using `backend/.env.example` as the template:
+
+```bash
+NVIDIA_API_KEY=nvapi-your-key-here
+NVIDIA_API_BASE=https://integrate.api.nvidia.com/v1
+NVIDIA_MODEL=meta/llama-3.3-70b-instruct
+NVIDIA_TIMEOUT=45
+```
+
+### 5. Install Ollama (Fallback LLM)
+
+Ollama is used for local fallback inference. Install it from [ollama.ai](https://ollama.ai/):
 
 **Linux/macOS:**
 ```bash
@@ -71,7 +85,7 @@ curl -fsSL https://ollama.ai/install.sh | sh
 3. **Restart your terminal/command prompt** after adding to PATH
 4. Verify installation: Open a new terminal and run `ollama --version`
 
-### 5. Pull the LLM Model
+### 6. Pull the LLM Model
 
 After installing Ollama, pull the required model:
 
@@ -81,7 +95,7 @@ ollama pull llama3.2:3b
 
 The default model is `llama3.2:3b`. You can change this in `llm1/llm_config.py`.
 
-### 6. (Optional) Install GuardrailsAI for Enhanced Safety
+### 7. (Optional) Install GuardrailsAI for Enhanced Safety
 
 GuardrailsAI provides additional input/output validation:
 
@@ -102,12 +116,13 @@ guardrails hub install hub://guardrails/detect_pii
 
 ### LLM Configuration
 
-Edit `llm1/llm_config.py` to customize LLM settings:
+Use environment variables or `backend/.env` to customize LLM settings:
 
-```python
-LLM_MODEL_NAME = "llama3.2:3b"  # Change to your preferred model
-TEMPERATURE = 0.3                # Creativity level (0.0-1.0)
-MAX_TOKENS = 2048               # Maximum response length
+```bash
+NVIDIA_MODEL=meta/llama-3.3-70b-instruct
+OLLAMA_MODEL=llama3:8b
+OLLAMA_TEMPERATURE=0.2
+OLLAMA_MAX_TOKENS=512
 ```
 
 ### RAG Configuration

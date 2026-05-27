@@ -5,7 +5,7 @@
 [![React](https://img.shields.io/badge/React-19.2+-61DAFB.svg)](https://reactjs.org/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-An advanced AI-powered speech analysis system that provides real-time personality insights and communication feedback using local LLMs, RAG, and multi-agent AI architecture.
+An advanced AI-powered speech analysis system that provides real-time personality insights and communication feedback using NVIDIA NIM as the primary LLM, Ollama as a local fallback, RAG, and multi-agent AI architecture.
 
 ## 📋 Table of Contents
 
@@ -27,7 +27,7 @@ An advanced AI-powered speech analysis system that provides real-time personalit
 
 ## 🌟 Overview
 
-TEAM-5 is a comprehensive speech analysis pipeline that combines state-of-the-art speech processing, natural language understanding, and multi-agent AI systems to provide detailed personality insights and communication analysis. The system uses local LLMs (via Ollama) and Retrieval-Augmented Generation (RAG) to deliver personalized, actionable feedback.
+TEAM-5 is a comprehensive speech analysis pipeline that combines state-of-the-art speech processing, natural language understanding, and multi-agent AI systems to provide detailed personality insights and communication analysis. The system uses NVIDIA NIM for hosted LLM inference, falls back to local Ollama when needed, and uses Retrieval-Augmented Generation (RAG) to deliver personalized, actionable feedback.
 
 ### Key Capabilities
 
@@ -92,7 +92,7 @@ TEAM-5 is a comprehensive speech analysis pipeline that combines state-of-the-ar
                   ┌──────────────┐
                   │    Ollama    │
                   │ Local LLM    │
-                  │  (mistral)   │
+                  │ (llama3:8b)  │
                   └──────────────┘
 ```
 
@@ -138,8 +138,12 @@ python -m venv venv
 source venv/bin/activate  # Windows: venv\Scripts\activate
 pip install -r requirements.txt
 
-# Install and start Ollama
-ollama pull mistral
+# Configure NVIDIA NIM primary LLM
+# Create backend/.env from backend/.env.example and add your API key.
+# Default primary model: meta/llama-3.3-70b-instruct
+
+# Optional local fallback
+ollama pull llama3:8b
 
 # Start backend API
 uvicorn api:app --reload --port 8000
@@ -190,9 +194,22 @@ venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### 3. Install Ollama (Required for LLM)
+### 3. Configure NVIDIA NIM Primary LLM
 
-Ollama provides local LLM inference.
+Create `backend/.env` from `backend/.env.example` and add your NVIDIA API key:
+
+```env
+NVIDIA_API_KEY=nvapi-your-key-here
+NVIDIA_API_BASE=https://integrate.api.nvidia.com/v1
+NVIDIA_MODEL=meta/llama-3.3-70b-instruct
+NVIDIA_TIMEOUT=45
+```
+
+The backend uses NVIDIA first. If NVIDIA fails or the key is missing, it falls back to Ollama.
+
+### 4. Install Ollama (Optional Fallback LLM)
+
+Ollama provides local fallback LLM inference.
 
 **Linux/macOS:**
 ```bash
@@ -215,21 +232,22 @@ ollama --version
 #### Pull LLM Model
 
 ```bash
-ollama pull mistral
+ollama pull llama3:8b
 ```
 
-### 4. Frontend Setup (Optional)
+### 5. Frontend Setup (Optional)
 
 ```bash
 cd ../frontend
 npm install
 ```
 
-### 5. Configuration
+### 6. Configuration
 
-Edit backend configuration files as needed:
+Use `backend/.env` for LLM settings and edit backend configuration files as needed:
 
-- `backend/llm1/llm_config.py` - LLM settings (model, temperature, max tokens)
+- `backend/.env` - NVIDIA and Ollama LLM settings
+- `backend/llm1/llm_config.py` - LLM environment defaults
 - `backend/rag/config.py` - RAG system configuration
 - `backend/evals/eval_config.py` - Evaluation criteria
 
@@ -397,12 +415,18 @@ When the backend is running, visit:
 
 ## ⚙️ Configuration
 
-### LLM Configuration (`backend/llm1/llm_config.py`)
+### LLM Configuration (`backend/.env`)
 
-```python
-LLM_MODEL_NAME = "mistral"  # Change model
-TEMPERATURE = 0.3            # Creativity (0.0-1.0)
-MAX_TOKENS = 512            # Max response length
+```env
+NVIDIA_API_KEY=nvapi-your-key-here
+NVIDIA_API_BASE=https://integrate.api.nvidia.com/v1
+NVIDIA_MODEL=meta/llama-3.3-70b-instruct
+NVIDIA_TIMEOUT=45
+
+OLLAMA_MODEL=llama3:8b
+OLLAMA_BASE_URL=http://localhost:11434
+OLLAMA_TEMPERATURE=0.2
+OLLAMA_MAX_TOKENS=512
 ```
 
 ### RAG Configuration (`backend/rag/config.py`)
@@ -493,11 +517,12 @@ python main.py
 **Error:** `Ollama not available`
 
 **Solution:**
-1. Ensure Ollama is running: `ollama serve`
-2. Check model is pulled: `ollama list`
-3. Pull model if needed: `ollama pull mistral`
-4. **Windows**: Verify Ollama is in PATH
-5. **Linux/macOS**: Check `which ollama`
+1. If NVIDIA is configured, this is only a fallback warning.
+2. Ensure Ollama is running: `ollama serve`
+3. Check model is pulled: `ollama list`
+4. Pull model if needed: `ollama pull llama3:8b`
+5. **Windows**: Verify Ollama is in PATH
+6. **Linux/macOS**: Check `which ollama`
 
 ### Import Errors
 
@@ -552,6 +577,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 🙏 Acknowledgments
 
 - **Faster-Whisper**: OpenAI Whisper implementation
+- **NVIDIA NIM**: Hosted primary LLM inference
 - **Ollama**: Local LLM runtime
 - **LangChain**: LLM application framework
 - **ChromaDB**: Vector database for AI
@@ -567,10 +593,11 @@ For issues and questions:
 ## 🌟 Fixes & Updates
 - Resolved issue where the front end report was not being generated correctly by ensuring backend mock LLM schema strictly follows the expected prompt schema output patterns.
 - Added safeguards in local_llm wrappers when Ollama is unavailable.
+- Added NVIDIA NIM primary LLM support with Ollama fallback.
 
 ## 🗺️ Roadmap
 
-- [ ] Support for additional LLM providers
+- [x] Support for NVIDIA NIM primary LLM provider
 - [ ] Multi-language support
 - [ ] Real-time streaming analysis
 - [ ] Advanced visualization dashboards

@@ -1,6 +1,14 @@
 # llm1/local_llm.py
 
-from llm1.llm_config import LLM_MODEL_NAME, OLLAMA_BASE_URL, TEMPERATURE, MAX_TOKENS
+from llm1.llm_config import (
+    LLM_MODEL_NAME,
+    MAX_TOKENS,
+    NVIDIA_API_KEY,
+    NVIDIA_MODEL,
+    OLLAMA_BASE_URL,
+    TEMPERATURE,
+)
+from llm1.nvidia_llm import NvidiaChatLLM
 
 
 class _ReportStubLLM:
@@ -31,26 +39,46 @@ class _ReportStubLLM:
 
 
 class _SafeLLM:
-    """Invoke a real LLM, falling back if the local request fails."""
+    """Invoke NVIDIA first, falling back to Ollama and then the report stub."""
 
-    def __init__(self, llm):
-        self._llm = llm
+    def __init__(self, primary_llm=None, ollama_llm=None):
+        self._primary_llm = primary_llm
+        self._ollama_llm = ollama_llm
         self._fallback = _ReportStubLLM()
 
     def invoke(self, prompt: str) -> str:
-        try:
-            response = self._llm.invoke(prompt)
-            return getattr(response, "content", response)
-        except Exception as e:
-            print(f"Ollama report request failed ({e}), using stub LLM")
-            return self._fallback.invoke(prompt)
+        if self._primary_llm is not None:
+            try:
+                response = self._primary_llm.invoke(prompt)
+                return getattr(response, "content", response)
+            except Exception as e:
+                print(f"NVIDIA report request failed ({e}), falling back to Ollama")
+                self._primary_llm = None
+
+        if self._ollama_llm is not None:
+            try:
+                response = self._ollama_llm.invoke(prompt)
+                return getattr(response, "content", response)
+            except Exception as e:
+                print(f"Ollama report request failed ({e}), using stub LLM")
+                self._ollama_llm = None
+
+        return self._fallback.invoke(prompt)
 
 
 def get_llm():
     """
-    Returns an Ollama-backed LLM instance.
-    Falls back to stub if Ollama or the configured model is not available.
+    Returns an NVIDIA-backed LLM with Ollama fallback.
+    Falls back to stub if both providers are unavailable.
     """
+    primary_llm = None
+    if NVIDIA_API_KEY:
+        try:
+            primary_llm = NvidiaChatLLM(json_mode=False)
+            print(f"Using NVIDIA NIM primary report model: {NVIDIA_MODEL}")
+        except Exception as e:
+            print(f"NVIDIA integration not available: {e}")
+
     try:
         try:
             from langchain_ollama import OllamaLLM
@@ -71,10 +99,12 @@ def get_llm():
                 num_predict=MAX_TOKENS,
             )
 
-        return _SafeLLM(llm)
+        return _SafeLLM(primary_llm=primary_llm, ollama_llm=llm)
 
     except (ImportError, ModuleNotFoundError, ValueError) as e:
         print(f"Ollama integration not available: {e}")
+        if primary_llm is not None:
+            return _SafeLLM(primary_llm=primary_llm)
         print("Using stub LLM for testing...")
         return _ReportStubLLM()
     except Exception as e:

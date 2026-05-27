@@ -1,13 +1,21 @@
 """LLM wrapper used by agents.
 
-This module tries to use Ollama first, otherwise it falls back to a
-lightweight stub that returns deterministic JSON for testing purposes.
+This module tries NVIDIA hosted NIM first, then Ollama, then a lightweight
+stub that returns deterministic JSON for testing purposes.
 """
 
 import json
 import threading
 
-from llm1.llm_config import LLM_MODEL_NAME, OLLAMA_BASE_URL, TEMPERATURE, MAX_TOKENS
+from llm1.llm_config import (
+    LLM_MODEL_NAME,
+    MAX_TOKENS,
+    NVIDIA_API_KEY,
+    NVIDIA_MODEL,
+    OLLAMA_BASE_URL,
+    TEMPERATURE,
+)
+from llm1.nvidia_llm import NvidiaChatLLM
 
 
 class _StubLLM:
@@ -85,15 +93,26 @@ class _StubLLM:
         return json.dumps(resp)
 
 
-class _LazyOllamaLLM:
-    """Lazy-loading wrapper that tries Ollama first, falls back to stub."""
+class _LazyPrimaryLLM:
+    """Lazy-loading wrapper that tries NVIDIA first, then Ollama, then stub."""
 
     def __init__(self):
+        self._nvidia_llm = None
+        self._nvidia_disabled = False
         self._llm = None
         self._initialized = False
         self._init_lock = threading.Lock()
 
-    def _get_llm(self):
+    def _get_nvidia_llm(self):
+        if not NVIDIA_API_KEY or self._nvidia_disabled:
+            return None
+
+        if self._nvidia_llm is None:
+            self._nvidia_llm = NvidiaChatLLM(json_mode=True)
+            print(f"Using NVIDIA NIM primary model: {NVIDIA_MODEL}")
+        return self._nvidia_llm
+
+    def _get_ollama_llm(self):
         if not self._initialized:
             with self._init_lock:
                 if not self._initialized:
@@ -128,7 +147,15 @@ class _LazyOllamaLLM:
         return self._llm
 
     def invoke(self, prompt: str) -> str:
-        llm = self._get_llm()
+        nvidia_llm = self._get_nvidia_llm()
+        if nvidia_llm is not None:
+            try:
+                return nvidia_llm.invoke(prompt)
+            except Exception as e:
+                print(f"NVIDIA LLM request failed ({e}), falling back to Ollama")
+                self._nvidia_disabled = True
+
+        llm = self._get_ollama_llm()
         try:
             response = llm.invoke(prompt)
             return getattr(response, "content", response)
@@ -136,8 +163,8 @@ class _LazyOllamaLLM:
             print(f"Ollama LLM request failed ({e}), using stub LLM")
             with self._init_lock:
                 self._llm = _StubLLM()
-                self._initialized = True
+            self._initialized = True
             return self._llm.invoke(prompt)
 
 
-llm = _LazyOllamaLLM()
+llm = _LazyPrimaryLLM()
